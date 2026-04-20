@@ -1,11 +1,10 @@
 plugins {
 	java
-	id("org.springframework.boot") version "3.5.13"
-	id("io.spring.dependency-management") version "1.1.7"
+	application
 }
 
-group = "com.mini"
-version = "0.0.1-SNAPSHOT"
+group = "dev.minibroker"
+version = "0.1.0-SNAPSHOT"
 
 java {
 	toolchain {
@@ -18,11 +17,20 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation(platform("org.junit:junit-bom:5.11.3"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.withType<Test> {
+application {
+	mainClass = "dev.minibroker.Main"
+}
+
+tasks.test {
 	useJUnitPlatform()
+}
+
+tasks.withType<JavaCompile> {
+	options.encoding = "UTF-8"
+	options.compilerArgs.add("-Xlint:all")
 }
