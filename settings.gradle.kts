@@ -1,1 +1,1 @@
-rootProject.name = "broker"
+rootProject.name = "minibroker"
