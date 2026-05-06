@@ -9,10 +9,10 @@ public class Record {
     private final long timestamp;
     private final byte[] key;
 
-    public Record(long offset, byte[] value, long timestamp, byte[] key) {
+    public Record(long offset, long timestamp, byte[] key, byte[] value) {
         this.offset = offset;
-        this.value = value;
         this.timestamp = timestamp;
+        this.value = value;
         this.key = key;
     }
     public long offset() { return offset; }
