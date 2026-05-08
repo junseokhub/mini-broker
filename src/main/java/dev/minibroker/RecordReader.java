@@ -8,7 +8,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecordReader {
+public class RecordReader implements AutoCloseable {
 
     private final FileChannel channel;
 

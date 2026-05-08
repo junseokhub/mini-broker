@@ -6,7 +6,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-public class RecordWriter {
+public class RecordWriter implements AutoCloseable {
 
     private final FileChannel channel;
 
