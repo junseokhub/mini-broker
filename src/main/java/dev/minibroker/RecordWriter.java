@@ -18,7 +18,8 @@ public class RecordWriter implements AutoCloseable {
     }
 
     // kafka 스타일 바이너리 append
-    public void append(Record record) throws IOException {
+    public long append(Record record) throws IOException {
+        long position = channel.position();
         // 고정 바이트 총 합
         int keyLength = (record.key() == null) ? 0 : record.key().length;
         int valueLength = (record.value() == null) ? 0 : record.value().length;
@@ -47,6 +48,7 @@ public class RecordWriter implements AutoCloseable {
 
         buffer.flip();
         channel.write(buffer);
+        return position;
     }
 
     public void close() throws IOException {
