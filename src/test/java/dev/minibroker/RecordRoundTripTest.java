@@ -1,5 +1,8 @@
 package dev.minibroker;
 
+import dev.minibroker.log.record.Record;
+import dev.minibroker.log.record.RecordReader;
+import dev.minibroker.log.record.RecordWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

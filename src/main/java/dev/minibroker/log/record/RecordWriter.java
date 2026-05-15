@@ -1,4 +1,4 @@
-package dev.minibroker;
+package dev.minibroker.log.record;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

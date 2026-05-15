@@ -1,5 +1,9 @@
 package dev.minibroker;
 
+import dev.minibroker.log.index.IndexReader;
+import dev.minibroker.log.segment.LogSegment;
+import dev.minibroker.log.record.Record;
+import dev.minibroker.log.record.RecordReader;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;

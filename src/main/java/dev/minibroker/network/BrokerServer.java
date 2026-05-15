@@ -1,4 +1,7 @@
-package dev.minibroker;
+package dev.minibroker.network;
+
+import dev.minibroker.log.segment.LogSegment;
+import dev.minibroker.log.record.Record;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

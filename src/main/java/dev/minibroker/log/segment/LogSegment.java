@@ -1,4 +1,8 @@
-package dev.minibroker;
+package dev.minibroker.log.segment;
+
+import dev.minibroker.log.record.Record;
+import dev.minibroker.log.record.RecordWriter;
+import dev.minibroker.log.index.IndexWriter;
 
 import java.io.IOException;
 import java.nio.file.Path;

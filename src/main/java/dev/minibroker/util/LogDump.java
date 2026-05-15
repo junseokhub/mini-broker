@@ -1,4 +1,7 @@
-package dev.minibroker;
+package dev.minibroker.util;
+
+import dev.minibroker.log.record.Record;
+import dev.minibroker.log.record.RecordReader;
 
 import java.nio.file.Path;
 import java.util.List;
