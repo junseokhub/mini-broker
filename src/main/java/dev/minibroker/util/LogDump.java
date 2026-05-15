@@ -8,7 +8,7 @@ import java.util.List;
 
 public class LogDump {
     public static void main(String[] args) throws Exception {
-        Path logPath = Path.of("test.log");
+        Path logPath = Path.of("data/orders.log");
         try (RecordReader reader = new RecordReader(logPath)) {
             List<Record> records = reader.readAll();
             for (Record r : records) {
