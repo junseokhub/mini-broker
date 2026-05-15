@@ -17,11 +17,13 @@ import java.util.Map;
 public class BrokerServer {
 
     private final int port;
+    private final Path dataDir;
     private final Map<String, LogSegment> segments = new HashMap<>();
     private final Map<String, Long> offsets = new HashMap<>();
 
-    public BrokerServer(int port) {
+    public BrokerServer(int port, Path dataDir) {
         this.port = port;
+        this.dataDir = dataDir;
     }
 
     public void start() throws IOException {
@@ -48,7 +50,8 @@ public class BrokerServer {
 
                     // 1. 전체 길이 읽기
                     ByteBuffer lenBuf = ByteBuffer.allocate(4);
-                    client.read(lenBuf);
+                    int bytesRead = client.read(lenBuf);
+                    if (bytesRead < 4) continue;
                     lenBuf.flip();
                     int totalLen = lenBuf.getInt();
 
@@ -82,8 +85,8 @@ public class BrokerServer {
                     // 6. LogSegment에 append
                     LogSegment segment = segments.computeIfAbsent(topic, t -> {
                         try {
-                            Path logPath   = Path.of("data/" + t + ".log");
-                            Path indexPath = Path.of("data/" + t + ".index");
+                            Path logPath   = dataDir.resolve(t + ".log");
+                            Path indexPath = dataDir.resolve(t + ".index");
                             return new LogSegment(logPath, indexPath, 100);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
