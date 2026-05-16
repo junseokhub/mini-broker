@@ -23,7 +23,8 @@ public class ProducerClient implements AutoCloseable {
 
         int totalLen = 2 + topicBytes.length + 2 + keyLen + 2 + valueLen;
 
-        ByteBuffer buffer = ByteBuffer.allocate(4 + totalLen);
+        ByteBuffer buffer = ByteBuffer.allocate(1 + 4 + totalLen);
+        buffer.put((byte) 0x01); // PRODUCE
         buffer.putInt(totalLen);
         buffer.putShort((short) topicBytes.length);
         buffer.put(topicBytes);
