@@ -16,6 +16,11 @@ public class RecordReader implements AutoCloseable {
         this.channel = FileChannel.open(path, StandardOpenOption.READ);
     }
 
+    public List<Record> readFrom(long position) throws IOException {
+        channel.position(position); // 여기서부터 읽기
+        return readAll();           // 나머지 전부 읽기
+    }
+
     public List<Record> readAll() throws IOException {
         List<Record> records = new ArrayList<>();
 
