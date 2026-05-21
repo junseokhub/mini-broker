@@ -4,6 +4,7 @@ import dev.minibroker.log.index.IndexReader;
 import dev.minibroker.log.record.Record;
 import dev.minibroker.log.record.RecordReader;
 import dev.minibroker.log.segment.LogSegment;
+import dev.minibroker.log.segment.Topic;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -21,8 +22,7 @@ public class BrokerServer {
 
     private final int port;
     private final Path dataDir;
-    private final Map<String, LogSegment> segments = new HashMap<>();
-    private final Map<String, Long> offsets = new HashMap<>();
+    private final Map<String, Topic> topics = new HashMap<>();
 
     public BrokerServer(int port, Path dataDir) {
         this.port = port;
@@ -100,20 +100,20 @@ public class BrokerServer {
             payload.get(value);
         }
 
-        // LogSegment에 append
-        LogSegment segment = segments.computeIfAbsent(topic, t -> {
+        // Topic 가져오기 (없으면 파티션 3개로 생성)
+        Topic t = topics.computeIfAbsent(topic, name -> {
             try {
-                Path logPath   = dataDir.resolve(t + ".log");
-                Path indexPath = dataDir.resolve(t + ".index");
-                return new LogSegment(logPath, indexPath, 100);
+                return new Topic(name, 3, dataDir);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
 
-        long offset = offsets.getOrDefault(topic, 0L);
-        segment.append(new Record(offset, System.currentTimeMillis(), key, value));
-        offsets.put(topic, offset + 1);
+        // 파티션 선택 후 append (offset은 LogSegment가 직접 부여)
+        int partitionIndex = t.selectPartition(key);
+        LogSegment segment = t.partition(partitionIndex);
+        long offset = segment.append(key, value);
+
 
         // offset 응답
         ByteBuffer response = ByteBuffer.allocate(8);

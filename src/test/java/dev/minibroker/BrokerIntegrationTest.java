@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -48,7 +49,10 @@ public class BrokerIntegrationTest {
         }
 
         // 3. 로그 파일 읽어서 검증
-        Path logPath = tempDir.resolve("orders.log");
+        byte[] key = "key-0".getBytes();
+        int partitionIndex = Math.abs(Arrays.hashCode(key) % 3);
+        Path logPath = tempDir.resolve("orders-" + partitionIndex + ".log");
+
         try (RecordReader reader = new RecordReader(logPath)) {
             List<Record> records = reader.readAll();
             assertEquals(1, records.size());

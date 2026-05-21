@@ -22,9 +22,7 @@ public class LogSegmentTest {
         // 우선 300개 write
         try (LogSegment logSegment = new LogSegment(logPath, indexPath, 100)) {
             for (int i = 0; i < 300; i++) {
-                logSegment.append(new Record(
-                        i, System.currentTimeMillis(), ("key-" + i).getBytes(), ("value-" + i).getBytes()
-                ));
+                logSegment.append(("key-" + i).getBytes(), ("value-" + i).getBytes());
             }
         }
 

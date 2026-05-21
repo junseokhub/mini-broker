@@ -11,15 +11,20 @@ public class LogSegment implements AutoCloseable {
 
     private final RecordWriter recordWriter;
     private final IndexWriter indexWriter;
+    private long nextOffset = 0;
 
     public LogSegment(Path logPath, Path indexPath, int indexInterval) throws IOException {
         this.recordWriter = new RecordWriter(logPath);
         this.indexWriter = new IndexWriter(indexPath, indexInterval);
     }
 
-    public void append(Record record) throws IOException {
+    public long append(byte[] key, byte[] value) throws IOException {
+        long offset = nextOffset++;
+        Record record = new Record(offset, System.currentTimeMillis(), key, value);
+
         long position = recordWriter.append(record);
-        indexWriter.maybeIndex(record.offset(), position);
+        indexWriter.maybeIndex(offset, position);
+        return offset;
     }
 
     @Override
