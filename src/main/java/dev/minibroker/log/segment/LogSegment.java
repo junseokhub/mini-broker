@@ -9,6 +9,8 @@ import java.nio.file.Path;
 
 public class LogSegment implements AutoCloseable {
 
+    private final Path logPath;
+    private final Path indexPath;
     private final RecordWriter recordWriter;
     private final IndexWriter indexWriter;
     private long nextOffset = 0;
@@ -16,6 +18,8 @@ public class LogSegment implements AutoCloseable {
     public LogSegment(Path logPath, Path indexPath, int indexInterval) throws IOException {
         this.recordWriter = new RecordWriter(logPath);
         this.indexWriter = new IndexWriter(indexPath, indexInterval);
+        this.logPath = logPath;
+        this.indexPath = indexPath;
     }
 
     public long append(byte[] key, byte[] value) throws IOException {
@@ -32,4 +36,7 @@ public class LogSegment implements AutoCloseable {
         recordWriter.close();
         indexWriter.close();
     }
+
+    public Path logPath()   { return logPath; }
+    public Path indexPath() { return indexPath; }
 }
