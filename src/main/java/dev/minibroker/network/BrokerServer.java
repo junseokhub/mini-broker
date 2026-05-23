@@ -115,9 +115,10 @@ public class BrokerServer {
         long offset = segment.append(key, value);
 
 
-        // offset 응답
-        ByteBuffer response = ByteBuffer.allocate(8);
+        // offset + partitionIndex 응답
+        ByteBuffer response = ByteBuffer.allocate(8 + 4);
         response.putLong(offset);
+        response.putInt(partitionIndex);
         response.flip();
         client.write(response);
     }

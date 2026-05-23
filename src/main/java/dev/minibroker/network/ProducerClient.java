@@ -14,7 +14,7 @@ public class ProducerClient implements AutoCloseable {
         this.channel = SocketChannel.open(new InetSocketAddress(host, port));
     }
 
-    public long send(String topic, byte[] key, byte[] value) throws IOException {
+    public ProduceResult send(String topic, byte[] key, byte[] value) throws IOException {
         // [전체 길이: 4B][토픽명 길이: 2B][토픽명: NB][key 길이: 2B][key: NB][value 길이: 2B][value: NB]
 
         byte[] topicBytes = topic.getBytes();
@@ -46,11 +46,13 @@ public class ProducerClient implements AutoCloseable {
         buffer.flip();
         channel.write(buffer);
 
-        // 브로커한테 offset 응답 받기
-        ByteBuffer response = ByteBuffer.allocate(8);
+        // offset + partition 수신
+        ByteBuffer response = ByteBuffer.allocate(12);
         channel.read(response);
         response.flip();
-        return response.getLong();
+        long offset = response.getLong();
+        int partition = response.getInt();
+        return new ProduceResult(offset, partition);
     }
 
     @Override

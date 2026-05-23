@@ -3,6 +3,7 @@ package dev.minibroker;
 import dev.minibroker.log.record.Record;
 import dev.minibroker.log.record.RecordReader;
 import dev.minibroker.network.BrokerServer;
+import dev.minibroker.network.ProduceResult;
 import dev.minibroker.network.ProducerClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -40,12 +41,8 @@ public class BrokerIntegrationTest {
 
         // 2. Producer로 메시지 전송
         try (ProducerClient producer = new ProducerClient("localhost", 19092)) {
-            long offset = producer.send(
-                    "orders",
-                    "key-0".getBytes(),
-                    "value-0".getBytes()
-            );
-            assertEquals(0L, offset);
+            ProduceResult result = producer.send("orders", "key-0".getBytes(), "value-0".getBytes());
+            assertEquals(0L, result.offset());
         }
 
         // 3. 로그 파일 읽어서 검증
