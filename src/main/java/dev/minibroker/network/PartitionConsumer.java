@@ -36,9 +36,11 @@ public class PartitionConsumer {
         Path logPath = segment.logPath();
         List<Record> records;
         try (RecordReader reader = new RecordReader(logPath)) {
-            records = reader.readFrom(position);
+            records = reader.readFrom(position)
+                    .stream()
+                    .filter(r -> r.offset() >= committedOffset)
+                    .toList();
         }
-
         // 4. 읽은 메시지 중 마지막 offset + 1 커밋
         if (!records.isEmpty()) {
             long lastOffset = records.getLast().offset();
