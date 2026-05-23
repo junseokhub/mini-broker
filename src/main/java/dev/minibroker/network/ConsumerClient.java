@@ -17,7 +17,7 @@ public class ConsumerClient implements AutoCloseable {
         this.channel = SocketChannel.open(new InetSocketAddress(host, port));
     }
 
-    public List<Record> fetch(String topic, long fromOffset) throws IOException {
+    public List<Record> fetch(String topic, int partition, long fromOffset) throws IOException {
         // 1. FETCH 요청 전송
         // [type: 0x02][토픽명 길이: 2B][토픽명: NB][offset: 8B]
         byte[] topicBytes = topic.getBytes();
@@ -25,6 +25,7 @@ public class ConsumerClient implements AutoCloseable {
         buf.put((byte) 0x02);
         buf.putShort((short) topicBytes.length);
         buf.put(topicBytes);
+        buf.putInt(partition);
         buf.putLong(fromOffset);
         buf.flip();
         channel.write(buf);

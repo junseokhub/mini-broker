@@ -130,33 +130,41 @@ public class BrokerServer {
         short topicLen = topicBuf.getShort();
         byte[] topicBytes = new byte[topicLen];
         client.read(ByteBuffer.wrap(topicBytes));
-        String topic = new String(topicBytes);
+        String topicName = new String(topicBytes);
 
-        // 2. 시작 offset 읽기
+        // 2. 파티션 번호 읽기 ← 추가
+        ByteBuffer partitionBuf = ByteBuffer.allocate(4);
+        client.read(partitionBuf);
+        partitionBuf.flip();
+        int partition = partitionBuf.getInt();
+
+        // 3. 시작 offset 읽기
         ByteBuffer offsetBuf = ByteBuffer.allocate(8);
         client.read(offsetBuf);
         offsetBuf.flip();
         long offset = offsetBuf.getLong();
 
-        // 3. IndexReader로 position 찾기
-        Path indexPath = dataDir.resolve(topic + ".index");
+        // 4. Topic에서 해당 파티션 가져오기 ← 변경
+        Topic t = topics.get(topicName);
+        LogSegment segment = t.partition(partition);
+        Path indexPath = segment.indexPath();
+        Path logPath = segment.logPath();
+
+        // 5. IndexReader로 position 찾기
         long position;
         try (IndexReader indexReader = new IndexReader(indexPath)) {
-            position = indexReader.findPosition(offset); // fetchOffset → offset
+            position = indexReader.findPosition(offset);
         }
 
-        // 4. position부터 읽어서 응답
-        Path logPath = dataDir.resolve(topic + ".log");
+        // 6. position부터 읽어서 응답 (기존 코드 동일)
         try (RecordReader recordReader = new RecordReader(logPath)) {
             List<Record> records = recordReader.readFrom(position);
 
-            // 메시지 수 먼저 응답
             ByteBuffer countBuf = ByteBuffer.allocate(4);
             countBuf.putInt(records.size());
             countBuf.flip();
             client.write(countBuf);
 
-            // 각 메시지 응답
             for (Record r : records) {
                 int keyLen   = (r.key()   == null) ? 0 : r.key().length;
                 int valueLen = (r.value() == null) ? 0 : r.value().length;
