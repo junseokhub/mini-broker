@@ -22,11 +22,13 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("org.slf4j:slf4j-api:2.0.16")
 	implementation("ch.qos.logback:logback-classic:1.5.12")
+	implementation("org.apache.kafka:kafka-clients:3.7.0")
 
 	implementation("org.openjdk.jmh:jmh-core:1.37")
 	annotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
 	testImplementation("org.openjdk.jmh:jmh-core:1.37")
 	testAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:1.37")
+
 }
 
 application {
