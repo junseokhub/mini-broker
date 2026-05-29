@@ -40,8 +40,15 @@ public class KafkaBenchmark {
         producer.close();
     }
 
+    // ASYNC
+//    @Benchmark
+//    public void sendMessage() {
+//        producer.send(new ProducerRecord<>("bench-topic", key, value));
+//    }
+
+    // SYNC
     @Benchmark
-    public void sendMessage() {
-        producer.send(new ProducerRecord<>("bench-topic", key, value));
+    public void sendMessage() throws Exception {
+        producer.send(new ProducerRecord<>("bench-topic", key, value)).get();
     }
 }
