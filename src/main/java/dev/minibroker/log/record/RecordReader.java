@@ -17,8 +17,8 @@ public class RecordReader implements AutoCloseable {
     }
 
     public List<Record> readFrom(long position) throws IOException {
-        channel.position(position); // 여기서부터 읽기
-        return readAll();           // 나머지 전부 읽기
+        channel.position(position);
+        return readAll();
     }
 
     public List<Record> readAll() throws IOException {
@@ -42,22 +42,22 @@ public class RecordReader implements AutoCloseable {
             long offset = fixed.getLong();
             long timestamp = fixed.getLong();
 
-            // 3. read key
-            ByteBuffer keyLengthBuf = ByteBuffer.allocate(2);
+            // 3. read key (length: 4B int)
+            ByteBuffer keyLengthBuf = ByteBuffer.allocate(4);
             channel.read(keyLengthBuf);
             keyLengthBuf.flip();
-            short keyLength = keyLengthBuf.getShort();
+            int keyLength = keyLengthBuf.getInt();
             byte[] key = null;
             if (keyLength != -1) {
                 key = new byte[keyLength];
                 channel.read(ByteBuffer.wrap(key));
             }
 
-            // 4. read value
-            ByteBuffer valueLengthBuf = ByteBuffer.allocate(2);
+            // 4. read value (length: 4B int)
+            ByteBuffer valueLengthBuf = ByteBuffer.allocate(4);
             channel.read(valueLengthBuf);
             valueLengthBuf.flip();
-            short valueLength = valueLengthBuf.getShort();
+            int valueLength = valueLengthBuf.getInt();
             byte[] value = null;
             if (valueLength != -1) {
                 value = new byte[valueLength];
@@ -65,12 +65,12 @@ public class RecordReader implements AutoCloseable {
             }
 
             records.add(new Record(offset, timestamp, key, value));
-
         }
 
         return records;
     }
 
+    @Override
     public void close() throws IOException {
         channel.close();
     }

@@ -24,9 +24,9 @@ public class Topic {
 
     public int selectPartition(byte[] key) {
         if (key == null) {
-            return roundRobinCounter++ % partitions.size();
+            return Math.floorMod(roundRobinCounter++, partitions.size());
         }
-        return Math.abs(Arrays.hashCode(key) % partitions.size());
+        return Math.floorMod(Arrays.hashCode(key), partitions.size());
     }
 
     public LogSegment partition(int index) {

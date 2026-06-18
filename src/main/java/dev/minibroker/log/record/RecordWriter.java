@@ -21,12 +21,10 @@ public class RecordWriter implements AutoCloseable {
     public long append(Record record) throws IOException {
         long position = channel.position();
         // 고정 바이트 총 합
-        int keyLength = (record.key() == null) ? 0 : record.key().length;
+        int keyLength   = (record.key()   == null) ? 0 : record.key().length;
         int valueLength = (record.value() == null) ? 0 : record.value().length;
 
-        int size = 22 + keyLength + valueLength;
-
-
+        int size = 26 + keyLength + valueLength;   // 2+8+8+4+4 = 26
 
         ByteBuffer buffer = ByteBuffer.allocate(size); // 새로운 공간
         buffer.putShort((short) 0xCAFE);
@@ -34,15 +32,15 @@ public class RecordWriter implements AutoCloseable {
         buffer.putLong(record.timestamp());
 
         if (record.key() == null) {
-            buffer.putShort((short) -1);
+            buffer.putInt(-1);
         } else {
-            buffer.putShort((short) record.key().length);
+            buffer.putInt(record.key().length);
             buffer.put(record.key());
         }
         if (record.value() == null) {
-            buffer.putShort((short) -1);
+            buffer.putInt(-1);
         } else {
-            buffer.putShort((short) record.value().length);
+            buffer.putInt(record.value().length);
             buffer.put(record.value());
         }
 

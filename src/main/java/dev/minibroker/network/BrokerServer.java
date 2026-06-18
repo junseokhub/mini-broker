@@ -13,6 +13,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -69,20 +70,20 @@ public class BrokerServer {
     private void handleProduce(SocketChannel client) throws IOException {
         // 전체 길이 읽기
         ByteBuffer lenBuf = ByteBuffer.allocate(4);
-        client.read(lenBuf);
+        readFully(client, lenBuf);
         lenBuf.flip();
         int totalLen = lenBuf.getInt();
 
         // 페이로드 읽기
         ByteBuffer payload = ByteBuffer.allocate(totalLen);
-        client.read(payload);
+        readFully(client, payload);
         payload.flip();
 
         // 토픽명
         short topicLen = payload.getShort();
         byte[] topicBytes = new byte[topicLen];
         payload.get(topicBytes);
-        String topic = new String(topicBytes);
+        String topic = new String(topicBytes, StandardCharsets.UTF_8);
 
         // key
         short keyLen = payload.getShort();
@@ -123,29 +124,37 @@ public class BrokerServer {
         client.write(response);
     }
 
+    private static void readFully(SocketChannel channel, ByteBuffer buf) throws IOException {
+        while (buf.hasRemaining()) {
+            int n = channel.read(buf);
+            if (n == -1) throw new IOException("connection closed before full read");
+            if (n == 0) Thread.onSpinWait(); // non-blocking: 아직 데이터 없음, 잠깐 양보
+        }
+    }
+
     private void handleFetch(SocketChannel client) throws IOException {
         // 1. 토픽명 읽기
         ByteBuffer topicBuf = ByteBuffer.allocate(2);
-        client.read(topicBuf);
+        readFully(client, topicBuf);
         topicBuf.flip();
         short topicLen = topicBuf.getShort();
-        byte[] topicBytes = new byte[topicLen];
-        client.read(ByteBuffer.wrap(topicBytes));
-        String topicName = new String(topicBytes);
+        ByteBuffer topicBytesBuf = ByteBuffer.allocate(topicLen);
+        readFully(client, topicBytesBuf);
+        String topicName = new String(topicBytesBuf.array(), java.nio.charset.StandardCharsets.UTF_8);
 
-        // 2. 파티션 번호 읽기 ← 추가
+        // 2. 파티션 번호 읽기
         ByteBuffer partitionBuf = ByteBuffer.allocate(4);
-        client.read(partitionBuf);
+        readFully(client, partitionBuf);
         partitionBuf.flip();
         int partition = partitionBuf.getInt();
 
         // 3. 시작 offset 읽기
         ByteBuffer offsetBuf = ByteBuffer.allocate(8);
-        client.read(offsetBuf);
+        readFully(client, offsetBuf);
         offsetBuf.flip();
         long offset = offsetBuf.getLong();
 
-        // 4. Topic에서 해당 파티션 가져오기 ← 변경
+        // 4. Topic에서 해당 파티션 가져오기
         Topic t = topics.get(topicName);
         LogSegment segment = t.partition(partition);
         Path indexPath = segment.indexPath();
@@ -157,9 +166,11 @@ public class BrokerServer {
             position = indexReader.findPosition(offset);
         }
 
-        // 6. position부터 읽어서 응답 (기존 코드 동일)
+        // 6. position부터 읽어서 응답
         try (RecordReader recordReader = new RecordReader(logPath)) {
-            List<Record> records = recordReader.readFrom(position);
+            List<Record> records = recordReader.readFrom(position).stream()
+                    .filter(r -> r.offset() >= offset)
+                    .toList();
 
             ByteBuffer countBuf = ByteBuffer.allocate(4);
             countBuf.putInt(records.size());
